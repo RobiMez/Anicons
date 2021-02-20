@@ -25,10 +25,11 @@ style = style_from_dict({
 })
 
 # Splash ascii render 
-print('---------------------------------------------------------------------------')
-print(figlet.renderText('Anicons.py'))
-print('---------------------------------------------------------------------------\n')
 
+
+# print('────────────────────────────────────────────────────────────────────────────')
+print(figlet.renderText('Anicons.py'))
+# print('────────────────────────────────────────────────────────────────────────────')
 # Main folder that houses anime 
 path = 'Anime'
 
@@ -37,7 +38,7 @@ path = 'Anime'
 anime_folders= []
 
 # Code traverses directory structure and appends folders/subfolders to anifolders
-print(f'[ LOG ] Looking at ./{path} for anime ')
+print(f'[ 0-0 ] Looking for anime in  ./{path}')
 for root,d_names,f_names in os.walk(path):
     # print ('in :',root,"\n directries within:", d_names,'\n files within:', f_names,'\n')
 
@@ -67,114 +68,131 @@ for folder in anime_folders:
 # pprint(anime_folders)
 # pprint(redundant_indices)
 
-print(f'\n[ LOG ] Finished looking at ./{path} for anime \n')
-print(f'Removed {len(redundant_indices)} duplicates from listing \n')
+print(f'\n[ U.U ] Finished looking for anime in : ./{path} \n')
 
-print('\n Potential Anime folders: \n')
-for folder in anime_folders:
-    if folder[2] == False :
-        print("    ",folder[0])
+if len(anime_folders) != 0 :
+    print(f'[ >~< ] Removed {len(redundant_indices)} duplicates folders from listing.')
+    print('\n[ ^-^ ] Potential Anime folders: \n')
+    for folder in anime_folders:
+        if folder[2] == False :
+            print("    ─ ",folder[0])
+else:
+    print('[ >~< ] No folders found')
+print('────────────────────────')
 
 for folder in anime_folders: # Crosscheck with api if anime exists 
     if folder[2]== False:
         anime = folder[0]
-        print("Folder name : ",folder[0])
-        print("Fetching names in the api similar to : ",folder[0])
+        # os.system('cls')
+        print("[ O~O ] Fetching names in the api similar to ─ folder name : ",folder[0])
         # fetches data from the api matching the name 
-        anime_data = ji.search(search_type='anime', query=anime,parameters={'limit' :5})
-        results  = anime_data['results']
-        choices = [{'name':'Not an anime folder '}] #initialze choices 
-        # parse results for the returned names and let use choose which is the closest 
-        for result in results:
-            choice = {'name':result['title']}
-            choices.append(choice)
+        try:
+            anime_data = ji.search(search_type='anime', query=anime,parameters={'limit' :5})
+        except requests.exceptions.ConnectionError:
+            anime_data = None
+            print('[ >~< ] No internet connection detected ')
+            print('\n Sorry but this program requires access to the internet\n in order to download the cover arts for the folders.\n')
+
+        if anime_data != None:
+            results  = anime_data['results']
+            choices = [{'name':'Not an anime folder '}] #initialze choices 
+            # parse results for the returned names and let use choose which is the closest 
+            for result in results:
+                choice = {'name':result['title']}
+                choices.append(choice)
         # print(result['title']
     else:
         break
-    
-    questions = [
-    {
-        'type': 'list',
-        'message': 'Select anime name:',
-        'name': 'name',
-        'choices': choices,
-        'validate': lambda answer: 'You must choose at least one.' \
-            if len(answer) == 0 else True
-    }
-    ]
-    name_validated = prompt(questions, style=style)
-    # pprint(name_validated)
-    # print(choices)
-    # print(choice)
-    # prints which choice was chosen 
-    
-    choice = choices.index(name_validated) -1
-    
-    anime_chosen_data = results[choice]
-    print( "\n", anime_chosen_data , "\n")
-    anime_poster_url = anime_chosen_data['image_url']
-    anime_title = anime_chosen_data['title']
-    print(anime_chosen_data['image_url'])
+    if anime_data != None:
+        questions = [
+        {
+            'type': 'list',
+            'message': 'Select anime name:',
+            'name': 'name',
+            'choices': choices,
+            'validate': lambda answer: 'You must choose at least one.' \
+                if len(answer) == 0 else True
+        }
+        ]
+        name_validated = prompt(questions, style=style)
+        pprint(name_validated)
+        print(choices)
+        print(choice)
+        # prints which choice was chosen 
+        if name_validated != {'name': 'Not an anime folder '}:
+            choice = choices.index(name_validated) -1
+
+            
+            anime_chosen_data = results[choice]
+            print( "\n", anime_chosen_data , "\n")
+            anime_poster_url = anime_chosen_data['image_url']
+            anime_title = anime_chosen_data['title']
+            print(anime_chosen_data['image_url'])
 
 
-        
-    img_url = anime_chosen_data['image_url']
-    print(folder[1])
-    out_dir =  folder[1]
+            img_url = anime_chosen_data['image_url']
+            print(folder[1])
+            out_dir =  folder[1]
 
 
-    buffer = tempfile.SpooledTemporaryFile(max_size=1e9)
-    r = requests.get(img_url, stream=True)
-    if r.status_code == 200:
-        downloaded = 0
-        filesize = int(r.headers['content-length'])
-        for chunk in r.iter_content(chunk_size=1024):
-            downloaded += len(chunk)
-            buffer.write(chunk)
-            # print(downloaded/filesize)
-        buffer.seek(0)
-        i = Image.open(io.BytesIO(buffer.read()))
-        i.save(os.path.join(out_dir, 'image.jpg'), quality=85)
-    buffer.close()
+            buffer = tempfile.SpooledTemporaryFile(max_size=1e9)
+            r = requests.get(img_url, stream=True)
+            if r.status_code == 200:
+                downloaded = 0
+                filesize = int(r.headers['content-length'])
+                for chunk in r.iter_content(chunk_size=1024):
+                    downloaded += len(chunk)
+                    buffer.write(chunk)
+                    # print(downloaded/filesize)
+                buffer.seek(0)
+                i = Image.open(io.BytesIO(buffer.read()))
+                i.save(os.path.join(out_dir, 'image.jpg'), quality=85)
+            buffer.close()
 
-    # file downloaded and ready , start conversion 
+            # file downloaded and ready , start conversion 
 
-    # Creates a transparent canvas to paste the jpg into 
-    canvas = Image.new('RGBA', (256, 256), color = (0,0,0,0))
-    canvas.save(folder[1]+'\canvas.png')
-    # convert the jpg into a png 
+            # Creates a transparent canvas to paste the jpg into 
+            canvas = Image.new('RGBA', (256, 256), color = (0,0,0,0))
+            canvas.save(folder[1]+'\canvas.png')
+            # convert the jpg into a png 
 
-    for infile in glob.glob(folder[1]+"\image.jpg"):
-        file, ext = os.path.splitext(infile)
-        im = Image.open(infile)
-        imr = im.resize((180, 256))
-    # necessary file conversion to png ?
-        imr.save(folder[1]+"\image.png",format="png")
-        print(f'Converted {ext} to PNG with size {imr.size} and \nmetadata : {imr.info}')
+            for infile in glob.glob(folder[1]+"\image.jpg"):
+                file, ext = os.path.splitext(infile)
+                im = Image.open(infile)
+                imr = im.resize((180, 256))
+            # necessary file conversion to png ?
+                imr.save(folder[1]+"\image.png",format="png")
+                print(f'Converted {ext} to PNG with size {imr.size} and \nmetadata : {imr.info}')
 
-    # image on canvas pasting 
-    image = Image.open(folder[1]+'\image.png')
-    canvas.paste(image,(38,0))
-    canvas.save(folder[1]+'\poster.png')
+            # image on canvas pasting 
+            image = Image.open(folder[1]+'\image.png')
+            canvas.paste(image,(38,0))
+            canvas.save(folder[1]+'\poster.png')
 
-    for infile in glob.glob(folder[1]+"\poster.png"):
-        file, ext = os.path.splitext(infile)
-        im = Image.open(infile)
-        sizes=[(256, 256)]
-        im.save(folder[1]+'\\an.ico',format="ICO",sizes=sizes)
-        print(f'Converted {ext} with size {im.size} and \nmetadata : {im.info} to ico ')
-        print('Resizing ')
-    try:
-        f = open(folder[1]+"\desktop.ini", "x")
-        f.write("[.ShellClassInfo]\nIconResource=an.ico,0 ")
-        f.close()
+            for infile in glob.glob(folder[1]+"\poster.png"):
+                file, ext = os.path.splitext(infile)
+                im = Image.open(infile)
+                sizes=[(256, 256)]
+                im.save(folder[1]+'\\an.ico',format="ICO",sizes=sizes)
+                print(f'Converted {ext} with size {im.size} and \nmetadata : {im.info} to ico ')
+                print('Resizing ')
+            try:
+                f = open(folder[1]+"\desktop.in", "x")
+                f.write("[.ShellClassInfo]\nIconResource=an.ico,0 ")
+                f.close()
+                # fixes issue ?
+                os.rename(folder[1]+'\desktop.in',folder[1]+'\desktop.ini')
 
-    except(FileExistsError):
-        print('file already exists ')
-        
-    junk_files = ["canvas.png","image.jpg","image.png","poster.png"]
-    for file in junk_files:
-        if os.path.exists(folder[1]+f'\{file}'):
-            os.remove(folder[1]+f'\{file}')
+            except(FileExistsError):
+                print('file already exists ')
+                
+            junk_files = ["canvas.png","image.jpg","image.png","poster.png"]
+            for file in junk_files:
+                if os.path.exists(folder[1]+f'\{file}'):
+                    os.remove(folder[1]+f'\{file}')
+                else:
+                    print("The file does not exist") 
         else:
-            print("The file does not exist") 
+            pass
+    else:
+        pass
