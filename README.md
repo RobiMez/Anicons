@@ -13,6 +13,8 @@ A semi automated solution for most of your degenerate needs.
 
 ## Instructions
 
+### This step assumes that you have python and pip installed
+
 place anicons.py on the same level as your anime folder like:
 
     Anime
@@ -24,6 +26,6 @@ place anicons.py on the same level as your anime folder like:
 
 open cmd ,powershell or a terminal and type :
 
-```py
+    pip install -r requirements.txt
+
     python anicons.py
-```
