@@ -13,7 +13,7 @@ import time
 
 
 
-def printProgressBar(iteration,total, prefix='█ Progress:', suffix='Complete ', decimals=1, length=25, fill='█', unfill='–', printEnd="\r"):
+def printProgressBar(iteration,total, prefix='Progress:', suffix='Complete ', decimals=1, length=25, fill='█', unfill='–', printEnd="\r"):
     percent = ("{0:." + str(decimals) + "f}").format(100 *(iteration / float(total)))
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + unfill * (length - filledLength)
@@ -98,7 +98,7 @@ for folder in anime_folders: # Crosscheck with api if anime exists
         print("[ O~O ] Fetching names similar to folder name : ",folder[0])
         # fetches data from the api matching the name 
         try:
-            anime_data = ji.search(search_type='anime', query=anime,parameters={'limit' :5})
+            anime_data = ji.search(search_type='anime', query=anime,parameters={'limit' :7})
         except requests.exceptions.ConnectionError:
             anime_data = None
             print('[ >~< ] No internet connection detected ')
@@ -106,7 +106,7 @@ for folder in anime_folders: # Crosscheck with api if anime exists
 
         if anime_data != None:
             results  = anime_data['results']
-            choices = [{'name':'Not an anime folder '}] #initialze choices 
+            choices = [{'name': 'Not an anime folder ( Skip )'}] #initialze choices 
             # parse results for the returned names and let use choose which is the closest 
             for result in results:
                 choice = {'name':result['title']}
@@ -131,7 +131,7 @@ for folder in anime_folders: # Crosscheck with api if anime exists
         # print(choices)
         # print(choice)
         # prints which choice was chosen 
-        if name_validated != {'name': 'Not an anime folder '}:
+        if name_validated != {'name': 'Not an anime folder ( Skip )'}:
             choice = choices.index(name_validated) -1
             anime_chosen_data = results[choice]
             anime_poster_url = anime_chosen_data['image_url']
@@ -140,7 +140,8 @@ for folder in anime_folders: # Crosscheck with api if anime exists
             out_dir =  folder[1]
 
             # DEBUG:
-            # print( "\n", anime_chosen_data , "\n")
+            print( "\n", anime_chosen_data , "\n")
+            synop = anime_chosen_data['synopsis']
             # print(anime_chosen_data['image_url'])
             # print(folder[1])
             print("[ ^>^ ] Downloading cover art :")
@@ -189,16 +190,17 @@ for folder in anime_folders: # Crosscheck with api if anime exists
             print("[ ^-^ ] Creating icon config  :")
             try:
                 f = open(folder[1]+"\desktop.in", "x")
-                f.write("[.ShellClassInfo]\nIconResource=an.ico,0 ")
+                f.write(f'[.ShellClassInfo]\nIconResource=an.ico,0\nConfirmFileOp=0\nInfoTip={synop}')
                 f.close()
-                # fixes issue ?
+                os.rename(folder[1]+'\desktop.in',folder[1]+'\desktop.ini')
+                os.system(f"cd Anime\{folder[0]}&&attrib +A +S +H desktop.ini")
                 os.rename(folder[1]+'\desktop.in',folder[1]+'\desktop.ini')
             except(FileExistsError):
                 print('[ >_< ] file already exists ... Remaking')
                 os.remove(folder[1]+'\desktop.in')
                 os.remove(folder[1]+'\desktop.ini')
                 f = open(folder[1]+"\desktop.in", "x")
-                f.write("[.ShellClassInfo]\nIconResource=an.ico,0 ")
+                f.write(f'[.ShellClassInfo]\nIconResource=an.ico,0\nConfirmFileOp=0\nInfoTip={synop}')
                 f.close()
                 os.rename(folder[1]+'\desktop.in',folder[1]+'\desktop.ini')
                 os.system(f"cd Anime\{folder[0]}&&attrib +A +S +H desktop.ini")
