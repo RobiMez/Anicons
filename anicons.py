@@ -9,7 +9,16 @@ from PIL import Image
 import io
 import tempfile
 import glob
+import time
 
+
+
+def printProgressBar(iteration,total, prefix='█ Progress:', suffix='Complete ', decimals=1, length=25, fill='█', unfill='–', printEnd="\r"):
+    percent = ("{0:." + str(decimals) + "f}").format(100 *(iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + unfill * (length - filledLength)
+    # bar printing is here
+    print(f'\r{prefix} │{bar}│ {percent}% {suffix}', end=printEnd)
 
 ji = Jikan()
 figlet = Figlet(font='larry3d')
@@ -79,12 +88,14 @@ if len(anime_folders) != 0 :
 else:
     print('[ >~< ] No folders found')
 print('────────────────────────')
+time.sleep(1)
+os.system('cls')
 
 for folder in anime_folders: # Crosscheck with api if anime exists 
     if folder[2]== False:
         anime = folder[0]
-        # os.system('cls')
-        print("[ O~O ] Fetching names in the api similar to ─ folder name : ",folder[0])
+        os.system('cls')
+        print("[ O~O ] Fetching names similar to folder name : ",folder[0])
         # fetches data from the api matching the name 
         try:
             anime_data = ji.search(search_type='anime', query=anime,parameters={'limit' :5})
@@ -107,7 +118,7 @@ for folder in anime_folders: # Crosscheck with api if anime exists
         questions = [
         {
             'type': 'list',
-            'message': 'Select anime name:',
+            'message': 'Select correct anime name:',
             'name': 'name',
             'choices': choices,
             'validate': lambda answer: 'You must choose at least one.' \
@@ -115,26 +126,24 @@ for folder in anime_folders: # Crosscheck with api if anime exists
         }
         ]
         name_validated = prompt(questions, style=style)
-        pprint(name_validated)
-        print(choices)
-        print(choice)
+        # DEBUG: 
+        # pprint(name_validated)
+        # print(choices)
+        # print(choice)
         # prints which choice was chosen 
         if name_validated != {'name': 'Not an anime folder '}:
             choice = choices.index(name_validated) -1
-
-            
             anime_chosen_data = results[choice]
-            print( "\n", anime_chosen_data , "\n")
             anime_poster_url = anime_chosen_data['image_url']
             anime_title = anime_chosen_data['title']
-            print(anime_chosen_data['image_url'])
-
-
             img_url = anime_chosen_data['image_url']
-            print(folder[1])
             out_dir =  folder[1]
 
-
+            # DEBUG:
+            # print( "\n", anime_chosen_data , "\n")
+            # print(anime_chosen_data['image_url'])
+            # print(folder[1])
+            print("[ ^>^ ] Downloading cover art :")
             buffer = tempfile.SpooledTemporaryFile(max_size=1e9)
             r = requests.get(img_url, stream=True)
             if r.status_code == 200:
@@ -143,56 +152,73 @@ for folder in anime_folders: # Crosscheck with api if anime exists
                 for chunk in r.iter_content(chunk_size=1024):
                     downloaded += len(chunk)
                     buffer.write(chunk)
+                    # print(printprogressBar(downloaded))
+                    printProgressBar(downloaded,filesize)
+                    time.sleep(0.007)
                     # print(downloaded/filesize)
                 buffer.seek(0)
+                print()
                 i = Image.open(io.BytesIO(buffer.read()))
                 i.save(os.path.join(out_dir, 'image.jpg'), quality=85)
             buffer.close()
-
+            # time.sleep(10)
             # file downloaded and ready , start conversion 
-
+            print("[ ^<^ ] Converting to icon :")
             # Creates a transparent canvas to paste the jpg into 
             canvas = Image.new('RGBA', (256, 256), color = (0,0,0,0))
             canvas.save(folder[1]+'\canvas.png')
             # convert the jpg into a png 
-
             for infile in glob.glob(folder[1]+"\image.jpg"):
                 file, ext = os.path.splitext(infile)
                 im = Image.open(infile)
                 imr = im.resize((180, 256))
             # necessary file conversion to png ?
                 imr.save(folder[1]+"\image.png",format="png")
-                print(f'Converted {ext} to PNG with size {imr.size} and \nmetadata : {imr.info}')
-
+                # print(f'Converted {ext} to PNG with size {imr.size} and \nmetadata : {imr.info}')
             # image on canvas pasting 
             image = Image.open(folder[1]+'\image.png')
             canvas.paste(image,(38,0))
             canvas.save(folder[1]+'\poster.png')
-
             for infile in glob.glob(folder[1]+"\poster.png"):
                 file, ext = os.path.splitext(infile)
                 im = Image.open(infile)
                 sizes=[(256, 256)]
                 im.save(folder[1]+'\\an.ico',format="ICO",sizes=sizes)
-                print(f'Converted {ext} with size {im.size} and \nmetadata : {im.info} to ico ')
-                print('Resizing ')
+                # print(f'Converted {ext} with size {im.size} and \nmetadata : {im.info} to ico ')
+                # print('Resizing ')
+            print("[ ^-^ ] Creating icon config  :")
             try:
                 f = open(folder[1]+"\desktop.in", "x")
                 f.write("[.ShellClassInfo]\nIconResource=an.ico,0 ")
                 f.close()
                 # fixes issue ?
                 os.rename(folder[1]+'\desktop.in',folder[1]+'\desktop.ini')
-
             except(FileExistsError):
-                print('file already exists ')
-                
+                print('[ >_< ] file already exists ... Remaking')
+                os.remove(folder[1]+'\desktop.in')
+                os.remove(folder[1]+'\desktop.ini')
+                f = open(folder[1]+"\desktop.in", "x")
+                f.write("[.ShellClassInfo]\nIconResource=an.ico,0 ")
+                f.close()
+                os.rename(folder[1]+'\desktop.in',folder[1]+'\desktop.ini')
+                os.system(f"cd Anime\{folder[0]}&&attrib +A +S +H desktop.ini")
+                # print(folder[0])
+                # print(folder[1])
+                print('[ ^_^ ] Remade icon config ')
+            print("[ ^_^ ] Cleaning up residual files :")
             junk_files = ["canvas.png","image.jpg","image.png","poster.png"]
+            # time.sleep(50)
+            os.system(f'attrib +R Anime\\"{folder[0]}"')
             for file in junk_files:
                 if os.path.exists(folder[1]+f'\{file}'):
                     os.remove(folder[1]+f'\{file}')
                 else:
                     print("The file does not exist") 
+            time.sleep(0.5)
+
         else:
             pass
     else:
         pass
+print('────────────────────────')
+print('Im Finished')
