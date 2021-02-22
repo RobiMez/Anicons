@@ -39,12 +39,38 @@ style = style_from_dict({
 # print('────────────────────────────────────────────────────────────────────────────')
 print(figlet.renderText('Anicons.py'))
 # print('────────────────────────────────────────────────────────────────────────────')
+
+
+
+
 # Main folder that houses anime 
-path = 'Anime'
+paths = []
+for root,d_names,f_names in os.walk("."):
+    # print ('in :',root,"\n directries within:", d_names,'\n files within:', f_names,'\n')
+    for dir in d_names: # This code executes For every directory in the tree 
+        if(root == "."):
+            paths.append(dir)
+# print(paths)
+
+choices = [
+        {
+            'type': 'list',
+            'message': 'Select the main folder that contains anime : ',
+            'name': 'name',
+            'choices': paths,
+            'validate': lambda answer: 'You must choose at least one.' \
+                if len(answer) == 0 else True
+        }
+        ]
+path_choice = prompt(choices, style=style)
+path =".\\"+path_choice['name'] 
+# print(".\\"+path['name'])
 
 # folder list  
 # chose list because i need the data within to allow redundancy?
 anime_folders= []
+
+
 
 # Code traverses directory structure and appends folders/subfolders to anifolders
 print(f'[ 0-0 ] Looking for anime in  ./{path}')
@@ -224,3 +250,4 @@ for folder in anime_folders: # Crosscheck with api if anime exists
         pass
 print('────────────────────────')
 print('Im Finished')
+
