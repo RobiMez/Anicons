@@ -74,7 +74,7 @@ def remove_dupes(arr,list_to_populate_redundant_indices):
         else:
             list_to_populate_redundant_indices.append(arr.index(folder))
             folder[2]=True
-    folder_directories.append(folder[1])
+        folder_directories.append(folder[1])
 # print tree struct 
 def print_dir_tree(arr,main_folder):
     for folder in arr:
