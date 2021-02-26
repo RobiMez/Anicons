@@ -9,7 +9,7 @@ import tempfile
 import re
 import asyncio
 
-import requests # import requests to download said urls
+import requests # import requests to download urls
 
 from PyInquirer import style_from_dict, Token, prompt, Separator #inport pyinquirer for the choice list 
 from pyfiglet import Figlet #figlet import for  ascii art 
@@ -24,33 +24,23 @@ def printProgressBar(iteration,total, prefix='Progress:', suffix='Complete ', de
     percent = ("{0:." + str(decimals) + "f}").format(100 *(iteration / float(total)))
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + unfill * (length - filledLength)
-    # bar printing is here
+    # Progress bar printing 
     print(f'\r{prefix} │{bar}│ {percent}% {suffix}', end=printEnd)
 
-def removeSqBrackets(dirty):
-    clean = ""
-    clean = re.sub(r'[[]', '(', dirty)
-    clean = re.sub(r'[]]', ')', clean)
-    # print(clean)
-    return clean
-
-def addQuotationMarks(dirty):
-    clean = ""
-    clean = re.sub(r'[[]', '(', dirty)
-    clean = re.sub(r'[]]', ')', clean)
-    # print(clean)
-    return clean
-
+# Global Style for the prompts
 style = style_from_dict({
     Token.Separator: '#cc5454',
     Token.QuestionMark: '#673ab7 bold',
-    Token.Selected: '#bb89f5',  # default
+    Token.Selected: '#bb89f5',
     Token.Pointer: '#18e7f2 ',
-    Token.Instruction: '#11fa4c',  # default
+    Token.Instruction: '#11fa4c',
     Token.Answer: '#18e7f2 bold',
     Token.Question: '#63b9ff',
 })
 
+# ----------
+# ASTHETICS
+# ----------
 def splash_ascii(txt):
     print(figlet.renderText(txt))
 def clrs():
@@ -58,13 +48,10 @@ def clrs():
 def divider():
     print('────────────────────────────────────────────────────────────────────────────')
 
-
-
-# traverse directory 
-
-# code must accept a root directory as input and spit out a tree of ? dosent os .walk do that ? 
-
-# remove duplicates 
+# ----------
+# FUNCTIONAL
+# ----------
+# Remove duplicate entries ie subfolders containing the same name as their parents  
 def remove_dupes(arr,list_to_populate_redundant_indices):
     folder_names = []
     folder_directories = []
@@ -75,7 +62,7 @@ def remove_dupes(arr,list_to_populate_redundant_indices):
             list_to_populate_redundant_indices.append(arr.index(folder))
             folder[2]=True
     folder_directories.append(folder[1])
-# print tree struct 
+# Print folder tree list 
 def print_dir_tree(arr,main_folder):
     for folder in arr:
         if folder[2] == False :
@@ -98,7 +85,7 @@ def print_dir_tree(arr,main_folder):
                 entry = entry + "─ " +folder[0]+'\n'
                 # pprint(folder)
                 print(entry)
-
+# Fetch names from the jikan api 
 def get_names(aname,lim):
     try:
         anime_data = ji.search(search_type='anime', query=aname,parameters={'limit' :lim})
@@ -111,7 +98,7 @@ def get_names(aname,lim):
         return anime_data['results']
     else :
         return None
-
+# Download the poster from jikan 
 def download_poster(image_url,out_dir):
     print("[ ^>^ ] Downloading cover art :")
     buffer = tempfile.SpooledTemporaryFile(max_size=1e9)
@@ -131,41 +118,35 @@ def download_poster(image_url,out_dir):
         i = Image.open(io.BytesIO(buffer.read()))
         i.save(os.path.join(out_dir, 'image.jpg'), quality=100)
     buffer.close()
-
-def create_ico(image_location):
-    # Creates a transparent canvas to paste the jpg into 
-    canvas = Image.new('RGBA', (256, 256), color = (0,0,0,0))
-    save_loc = os.path.join(image_location, 'canvas.png')
-    canvas.save(save_loc)
-    # convert the jpg into a png 
-    for infile in glob.glob(image_location+r'\image.jpg'):
-        ext = os.path.splitext(infile)
-        im = Image.open(infile)
-        imr = im.resize((180, 256))
-    # necessary file conversion to png ?
-        pngsave_loc = os.path.join(image_location, 'image.png')
-        try:
-            imr.save(pngsave_loc,format="png")
-        except Exception as e :
-            print(e)
-        print(f'Converted {ext} to PNG with size {imr.size} and \nmetadata : {imr.info}')
-    # image on canvas pasting 
+# Generate a an.ico file 
+def create_ico(source):
+    """Creates a an.ico file in the specified path using image.jpg 
     
-    img_loc = os.path.join(image_location, 'image.png')
+    @Params : 
+        Source : A path that points to where image.jpg is 
+
+    """
+    canvas = Image.new('RGBA', (256, 256), color = (0,0,0,0))
+    canvas.save(os.path.join(source, 'canvas.png'))
+    print("\n[ ✨ ] Created transparent canvas \n")
+    im = Image.open(source+r'\image.jpg')
+    print("[ ✅ ] Opened image.jpg\n")
+    imr = im.resize((180, 256))
+    print("[ ✨ ] Resized to fit Canvas\n")
+    pngsave_loc = source+ r'\image.png'
+    imr.save(pngsave_loc,format="png")
+    img_loc = os.path.join(source, 'image.png')
     image = Image.open(img_loc)
-
+    print("[ ✅ ] Opened image.png\n")
     canvas.paste(image,(38,0))
-    canvas.save(image_location+r'\poster.png')
-
-    for infile in glob.glob(image_location+r"\poster.png"):
-        ext = os.path.splitext(infile)
-        im = Image.open(infile)
-        sizes=[(256, 256)]
-        im.save(image_location+'\\an.ico',format="ICO",sizes=sizes)
-
-    print(f'Converted {ext} with size {im.size} and \nmetadata : {im.info} to ico ')
-    # print('Resizing ')
-
+    print("[ ✨ ] Pasted image.png onto canvas.png\n")
+    canvas.save(source+r'\poster.png')
+    print("[ ✅ ] Saved paste as poster.png\n")
+    im = Image.open(source+r"\poster.png")
+    sizes = [(256, 256)]
+    im.save(source+'\\an.ico',format="ICO",sizes=sizes)
+    print("[ 🦾 ] Created an.ico file with 256 * 256 size \n")
+# Clean up residual files generated from create_ico
 def clean_up(dir,files):
     print("[ ^_^ ] Cleaning up residual files :")
     for file in files:
@@ -174,10 +155,10 @@ def clean_up(dir,files):
         else:
             print("The file does not exist") 
     time.sleep(0.5)
-
+# Set folder attributes as read only 
 def set_folder_readonly(main_folder_path,root):
     os.system(f'attrib +R {main_folder_path}\\"{root}"')
-
+# Generate a .ini config file 
 def generate_config(dir,root,synop,main_folder_path):
     print("[ ^-^ ] Creating icon config  :")
     try:
@@ -198,20 +179,13 @@ def generate_config(dir,root,synop,main_folder_path):
         os.system(f"cd {main_folder_path}\\{root}&&attrib +A +S +H desktop.ini")
         print('[ ^_^ ] Remade icon config ')
 
-###########################################################################
-###########################################################################
-###########################################################################
-###########################################################################
-###########################################################################
-###########################################################################
-###########################################################################
 
 def main ():
-    clrs()
-    splash_ascii('Anicons.py')
-    divider()
 
-    ###########################################################################
+    clrs() # Clear the screen 
+    splash_ascii('Anicons.py') # Renders the ascii text 
+    divider() # Adds a horizontal line as a divider 
+
     # Traverse current directory and prompt user for which one is the root 
     paths = []
     for root,d_names,f_names in os.walk("."):
@@ -229,50 +203,38 @@ def main ():
         }
     ]
     path_choice = prompt(choices, style=style)
-    ###########################################################################
-    # set the choice as main folder path 
 
+    # Set the choice as main folder path 
     main_folder_path = ".\\" + path_choice['path']
     anime_folders = []
     anime_folder_structure = []
-
-
     print(f'\n[ 0.0 ] Looking for anime in  {main_folder_path}\n')
 
-    # directory traversing happens here 💪
+    # Sub-directory traversing happens here
     for root,d_names,f_names in os.walk(main_folder_path):
         anime_folder_structure.append([root,d_names,f_names])
-        # print('\n',root,d_names,'\n')
         for dir in d_names:
-            # The schema of the data passed into the main code 
             absolute_path  = os.path.join(root,dir) 
             directory_name = dir
             redundancy = False
             children = d_names
+            # The schema of the data passed into the main code 
             anime_folder  = [directory_name,absolute_path,redundancy,root,children]
             anime_folders.append(anime_folder)
-
-    # pprint(anime_folder_structure)
-
     redundant_indices = []
-    
-    #########################################################
-    # avoids subnested folders with the same name i guess 
+    # Code to Avoid subnested folders with the same name i guess.
     remove_dupes(anime_folders,redundant_indices)
-    #########################################################
     print(f'[ U.U ] Finished looking for anime in : {main_folder_path} \n')
-    #########################################################
     if len(anime_folders) != 0 :
         print(f'[ >~< ] Removed {len(redundant_indices)} duplicates folders from listing.')
+        # Print directory listing if they exist 
         print('\n[ ^-^ ] Potential Anime folders: \n')
         print_dir_tree(anime_folders,main_folder_path)
-    #########################################################
     else:
         print('[ >~< ] No folders found')
-    #########################################################
+
     time.sleep(0.2)
-    #############################################################################
-    # prompt the user if they want to continue 
+    # Prompt the user if they want to continue 
     cont = [
         {
             'type': 'list',
@@ -292,36 +254,28 @@ def main ():
     ]
     divider()
     continuebool = prompt(cont, style=style)
-    #############################################################################
-
     if continuebool['name'] == 'Yes' :
-        print("umm")
+        # If user chooses to continue clear screen and proceed 
+        print("Cool ... ")
         clrs()
-
-    # #################################################################################
-    # Api stuff happens from here on out 😎
-    # #################################################################################
-        for folder in anime_folders: # Crosscheck with api if anime exists 
-            if folder[2]== False:
+        # Do an api call for every folder in the list 
+        # as long as they are not redundant 
+        for folder in anime_folders:
+            if folder[2] == False:
                 anime = folder[0]
                 os.system('cls')
                 print("[ O~O ] Fetching names similar to folder name : ",folder[0])
-                # fetches data from the api matching the name 
-                # try:
-                #     anime_data = ji.search(search_type='anime', query=anime,parameters={'limit' :7})
-                # except requests.exceptions.ConnectionError:
-                #     anime_data = None
-                #     print('[ >~< ] No internet connection detected ')
-                #     print('\n Sorry but this program requires access to the internet\n in order to download the cover arts for the folders.\n')
+            # Fecth data with second param as the limit of results returned.
             anime_data = get_names(folder[0],7)
             if anime_data != None:
                 results  = anime_data
-                choices = [{'name': 'Not an anime folder ( Skip )'}] # Initialze choices 
-                # Parses results for the returned names and lets us choose which is the closest .
+                # Initialze choices 
+                choices = [{'name': 'Not an anime folder ( Skip )'}]
+                # Parses results for the returned names 
+                # Then lets us choose which is the closest to the folder name .
                 for anime in anime_data:
                     choice = {'name' : anime['title']}
                     choices.append(choice)
-                # ###########################################################
                 questions = [
                 {
                     'type': 'list',
@@ -333,69 +287,29 @@ def main ():
                 }
                 ]
                 name_validated = prompt(questions, style=style)
-                # ###########################################################
-                # DEBUG: 
-                pprint(name_validated)
-                print(choices)
-                # prints which choice was chosen 
+                # If the user didn't pick to skip.
                 if name_validated != {'name': 'Not an anime folder ( Skip )'}:
-                    
                     choice = choices.index(name_validated) -1
                     anime_chosen_data = results[choice]
-                    # anime_title = anime_chosen_data['title']
                     synop = anime_chosen_data['synopsis']
                     img_url = anime_chosen_data['image_url']
                     out_dir =  folder[1]
-
                     time.sleep(2)
-
-                    # DEBUG:
-                    print( "\n", anime_chosen_data , "\n")
+                    # DEBUG: Data and image url 
+                    # print( "\n", anime_chosen_data , "\n")
                     # print(anime_chosen_data['image_url'])
-                    
-                    
-                    
+                    # Download the poster using the image_url
                     download_poster(img_url,out_dir)
-                    
-                    print(folder[1])
-                    
-                    folder_sliced = folder[1].split("\\")
-                    print(folder_sliced)
-                    print(folder_sliced[-1])
-                    quoted_folder = []
-                    clean_name = ''
-                    if '[' in folder_sliced[-1] or ']' in folder_sliced :
-                        print("messed up title ... adding quotes ")
-                        dirty_name = folder_sliced[-1]
-                        clean_name = "\"" + dirty_name + "\""
-                        print(clean_name)
-                        print(quoted_folder)
-                        nice_name = folder_sliced[0:-1] 
-                        print(nice_name)
-                        oof_string = ''
-                        for item in nice_name:
-                            oof_string = oof_string + item +'\\'
-                        oof_string = oof_string + clean_name
-                        print(oof_string)
-                        print("[ ^<^ ] Converting to icon :")
-                        create_ico(oof_string)
-                        # create_ico(folder[1])
-                    else:
-                        print("[ ^<^ ] Converting to icon :")
-                        create_ico(folder[1])   
-                    
-                    # file downloaded and ready , start conversion 
-                    
+                    # Generate an.ico
                     print("[ ^<^ ] Converting to icon :")
-                    # ####################################################
-                    # generates an icon 
-                    # ####################################################
-
+                    create_ico(folder[1]) 
+                    # Generate a .ini config 
                     generate_config(folder[1],folder[0],synop,main_folder_path)
+                    # Change folder attributes 
                     set_folder_readonly(main_folder_path,folder[0])
                     junk_files = ["canvas.png","image.jpg","image.png","poster.png"]
+                    # Clean up residual files 
                     clean_up(folder[1],junk_files)
-
                 else:
                     print("Skipping...")
                     time.sleep(0.4)
@@ -405,14 +319,9 @@ def main ():
         print('──────────────────────────────────')
         print('My job here is done ... YEET ✨')
         print('──────────────────────────────────')
-
-
     else:
         print('Death sounds ☠')
         quit(0)
-        
-        
-
 
 if __name__ == "__main__":
     main()
