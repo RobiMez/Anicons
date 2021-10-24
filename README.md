@@ -1,31 +1,33 @@
 # Anicons_py
 
-A semi automated solution for most of your degenerate needs.
+An anime folder management tool.
 
 ## Requirements
 
-    python 3.7.7
-    (thats what i used but anything above 3 should be fine i hope )
+    Python 3.7.7
     jikanpy | To get data and posters of the folder
-    pyfiglet | For the awesome ascii art 
-    PyInquirer | For the interactive title chooser 
     PIL | pillow for the image conversion process 
+    ffmpeg - disabled temporarily 
 
 ## Instructions
 
-### This step assumes that you have python and pip installed
+### Install all requirements :
 
-place anicons.py on the same level as your anime folder like:
+```cmd
+pip install -r requirements.txt
+```
 
-    Anime
-        Naruto
-        .
-        .
-        .
+Place anicons.py and animods on the same level as your anime folder like:
+
+    /animods
+    /Anime
+        /Naruto
+        /Gintama 
+        /Full metal alchemist
     anicons.py
 
 open cmd ,powershell or a terminal and type :
 
-    pip install -r requirements.txt
-
-    python anicons.py
+```cmd
+python anicons.py
+```
