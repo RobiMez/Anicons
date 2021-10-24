@@ -1,5 +1,3 @@
 jikanpy 
-pyfiglet 
-PyInquirer 
 PIL
 asyncio
