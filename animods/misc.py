@@ -23,14 +23,13 @@ class c:
     underline = '\033[4m'
     o = '\033[0m'
 
-def get_ignored ():
-    file = file.open('.anignore','r')
-    print(file)
-    
 
-def printProgressBar(iteration,total, prefix='Progress:', suffix='Complete ', decimals=1, length=25, fill='█', unfill='–', printEnd="\r"):
-    percent = ("{0:." + str(decimals) + "f}").format(100 *(iteration / float(total)))
+def print_progress_bar(iteration, total, prefix='Progress:', suffix='Complete ', decimals=1, length=25, fill='█', unfill='–', printEnd="\r"):
+    percent = ("{0:." + str(decimals) + "f}").format(100 *
+                                                     (iteration / float(total)))
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + unfill * (length - filledLength)
-    # Progress bar printing 
+    # Progress bar printing
     print(f'\r{prefix} │{bar}│ {percent}% {suffix}', end=printEnd)
+
+__all__ = ["c","print_progress_bar"]

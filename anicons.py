@@ -1,13 +1,24 @@
 import time
-import PIL
+import logging
 import os
 import re
-from pathlib import Path
-from animods.misc import *
-from animods.fs import *
-from animods.api import *
-from animods.img import *
 
+from pathlib import Path
+from animods.misc import c
+from animods.fs import (
+    generate_lock_file,
+    alter_attributes,
+    count_filetypes)
+from animods.api import (
+    get_episode_names_for_anime,
+    get_data_for_id,
+    get_predictions_for_folder_name)
+from animods.img import (
+    create_config,
+    create_ico,
+    download_poster)
+
+logging.basicConfig(level=logging.WARNING)
 main_path = input('Set root Folder path Example ./anime :')
 
 
@@ -25,7 +36,9 @@ def Merge(dict1, dict2):
 def get_size(start_path='.'):
     total_size = 0
     for dirpath, dirnames, filenames in os.walk(start_path):
+        logging.debug(dirnames)
         for f in filenames:
+            logging
             fp = os.path.join(dirpath, f)
             # skip if it is symbolic link
             if not os.path.islink(fp):
@@ -36,7 +49,7 @@ def get_size(start_path='.'):
 def get_lock(path):
     ''' Reads a lockfile and returns data '''
     print(f'{c.bold}{c.black} READ : lockfile {c.o}')
-    with open(Path.joinpath(path, 'Ξ.lock'), 'r', encoding='utf-8') as lock_file :
+    with open(Path.joinpath(path, 'Ξ.lock'), 'r', encoding='utf-8') as lock_file:
         lock_file_data = lock_file.read()
         lock_file.close()
         # wrap the file data in an eval()
@@ -66,14 +79,14 @@ def _initialize_lockfile(path):
     print(f'{c.b_black}{c.bold} _initialize_lockfile {path}{c.o}')
     ''' initializes a lockfile and sets constructor attributes :
         ATTRIBUTES :
-        is_skipped : for skipped folders 
-        is_verified : for verified folders 
+        is_skipped : for skipped folders
+        is_verified : for verified folders
         is_spliced : for splicing
-        folder_rename_skip : for those who dont want to rename 
-        episode_rename_skip : for those who dont want to rename 
-        has_episode_data : if episode data is present and non null 
-        has_folder_data : if folder data generated 
-        has_anime_data : if folder data generated 
+        folder_rename_skip : for those who dont want to rename
+        episode_rename_skip : for those who dont want to rename
+        has_episode_data : if episode data is present and non null
+        has_folder_data : if folder data generated
+        has_anime_data : if folder data generated
         has_file_data : if file data generated for episodes
         has_prediction : boolean
     '''
@@ -97,10 +110,10 @@ def _initialize_lockfile(path):
 def _generate_folder_data(path):
     print(f'{c.b_black}{c.bold} _generate_folder_data {path}{c.o}')
     ''' Generates the following data if has_folder_data is false
-        ATTRIBUTES : 
-        folder_name : current folder name 
-        folder_size_MB : folder size in megabytes 
-        folder_size_GB : folder size in gigabytes 
+        ATTRIBUTES :
+        folder_name : current folder name
+        folder_size_MB : folder size in megabytes
+        folder_size_GB : folder size in gigabytes
         folder_contents : enumeration of files within the folder
     '''
     lfd = get_lock(path)
@@ -200,7 +213,7 @@ def _prompt_verification(path):
 
 def _generate_anime_data(path):
     print(f'{c.b_black}{c.bold} _generate_anime_data {path}{c.o}')
-    ''''''
+
     lfd = get_lock(path)
     # logic after lock data is available
     mal_id = lfd['correct_prediction'][1]
@@ -216,7 +229,7 @@ def _generate_anime_data(path):
 
 def _generate_episode_data(path):
     print(f'{c.b_black}{c.bold} _generate_episode_data {path}{c.o}')
-    ''''''
+
     lfd = get_lock(path)
     mal_id = lfd['correct_prediction'][1]
 
@@ -230,8 +243,8 @@ def _generate_episode_data(path):
 
 
 def _generate_file_data(path):
+    '''Sets media_data and predicted ep num and current filename'''
     print(f'{c.b_black}{c.bold} _generate_file_data {path}{c.o}')
-    '''sets media_data and predicted ep num and current filename'''
     lfd = get_lock(path)
     folder_contents = lfd['folder_contents']
     supported_media_types = ['.mp4', '.mkv', '.flv', '.webm']
@@ -261,10 +274,10 @@ def _generate_file_data(path):
 
 
 def _splice_local_and_api(path):
-    print(f'{c.b_black}{c.bold} _splice_local_and_api {path}{c.o}')
     '''Splices local and anime data , needs 
     has anime data and has file data to be set
     sets spliced_data'''
+    print(f'{c.b_black}{c.bold} _splice_local_and_api {path}{c.o}')
     lfd = get_lock(path)
     if lfd['has_file_data'] and lfd['has_episode_data']:
 
@@ -295,12 +308,11 @@ def _splice_local_and_api(path):
                         episodes[prediction[0]] = prediction_data
                         print(
                             f'\n{c.yellow}{prediction}{c.orange}{prediction_data}{c.o}\n')
-                    except BaseException as e :
+                    except BaseException:
                         pass
                 else:
                     print(
                         f'{c.red}Could not find Episode data from the internet {c.o}\n')
-                    # TODO: add dupe checking
                 # print(f'\n{c.red}{delta}{c.o}\n')
         check_delta(lfd)
 
@@ -316,6 +328,7 @@ def _splice_local_and_api(path):
 
 
 def rename_folder(path):
+    """Renames a folder"""
     lfd = get_lock(path)
     fn = lfd['folder_name']
     t = lfd['anime_data']['title_english']
@@ -412,7 +425,7 @@ def main():
                         f'{c.green}[Lock file] folder data already fetched. {c.o}\n')
 
                 # must have folder data to be predictable
-                if not data['has_prediction'] :
+                if not data['has_prediction']:
                     _generate_predictions(node)
                 else:
                     print(
@@ -424,13 +437,13 @@ def main():
                 else:
                     print(f'{c.green}[Lock file]  already Verified . {c.o}\n')
 
-                if not data['has_episode_data'] :
+                if not data['has_episode_data']:
                     _generate_episode_data(node)
                 else:
                     print(
                         f'{c.green}[Lock file] episode data already fetched. {c.o}\n')
 
-                if not data['has_anime_data'] :
+                if not data['has_anime_data']:
                     _generate_anime_data(node)
                 else:
                     print(
@@ -470,4 +483,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

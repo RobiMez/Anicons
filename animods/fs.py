@@ -8,16 +8,20 @@ import collections
 def get_structure(root):
     return Path(root).rglob('*')
 
+
 def check_if_path_is_dir(p):
     return Path(p).is_dir()
+
 
 def check_if_path_is_file(p):
     return Path(p).is_file()
 
+
 def count_filetypes(p):
     return collections.Counter(p.suffix for p in Path(p).iterdir())
 
-def alter_attributes(path,attribute):
+
+def alter_attributes(path, attribute):
     '''
     Usage :
     alter_attributes('sth.md','+R +S') # sets to read only and system
@@ -45,27 +49,24 @@ def alter_attributes(path,attribute):
 
     return 'Attributes changed'
 
-def generate_lock_file(path,data):
+
+def generate_lock_file(path, data):
     if check_if_path_is_dir(path):
         # print(f'\n{c.purple}lockfile operation{c.o}')
         a_path = Path.absolute(path)
-        a_l_path = Path.joinpath(a_path,'Ξ.lock')
+        a_l_path = Path.joinpath(a_path, 'Ξ.lock')
         if a_l_path.exists():
             # print(f'{c.blue}Regenerating {a_l_path}{c.o}')
             # Warning : Permanent delete powers
             os.remove(a_l_path)
-        lock_file = open(a_l_path,'w', encoding="utf-8")
+        lock_file = open(a_l_path, 'w', encoding="utf-8")
         lock_file.write(str(data))
         lock_file.close()
         # print(r_l_path)
-        alter_attributes(a_l_path,'+H')
+        alter_attributes(a_l_path, '+H')
         print(f'{c.b_black}{a_l_path}\nLockfile operation finish{c.o}')
     else:
         print(f'{c.orange}{path}{c.yellow} is not a folder.{c.o}')
 
 
-
-
-
-
-
+__all__ = ['alter_attributes', 'generate_lock_file','count_filetypes']
