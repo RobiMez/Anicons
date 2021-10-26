@@ -320,7 +320,7 @@ def _splice_local_and_api(path):
                         episodes[prediction[0]] = prediction_data
                         print(
                             f'\n{c.yellow}{prediction}{c.orange}{prediction_data}{c.o}\n')
-                    except Exception: # pylint: ignore=broad-except
+                    except Exception: # pylint: disable=broad-except
                         pass
                 else:
                     print(
