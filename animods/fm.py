@@ -1,18 +1,20 @@
+# pylint: disable:F0001
 import ffmpeg
 import json
 from animods.misc import c
-
 
 
 def get_probe(path):
     probe = ffmpeg.probe(path)
     return probe
 
+
 def save_probe_to_json(path):
     probe = ffmpeg.probe(path)
-    file = open(f'{path}.json','w')
-    json.dump(probe,file)
+    file = open(f'{path}.json', 'w')
+    json.dump(probe, file)
     file.close()
+
 
 def get_file_data(path):
     filedata = {}
@@ -39,27 +41,26 @@ def get_file_data(path):
     except ffmpeg.Error as e:
         print(f'{c.red}{e.stderr}{c.o}')
         return 'Probe_error'
-    
+
     filedata['video_streams'] = video_streams
     filedata['video_quality'] = video_quality
     filedata['audio_streams'] = audio_streams
     filedata['subtitle_streams'] = subtitle_streams
     filedata['attachment_streams'] = attachment_streams
     return filedata
-    
 
 
-
-
-def get_num_streams_from_filepath (fpath):
+def get_num_streams_from_filepath(fpath):
     fp = ffmpeg.probe(fpath)
     return fp["format"]["nb_streams"]
 
-def get_streams_from_filepath (fpath):
+
+def get_streams_from_filepath(fpath):
     fp = ffmpeg.probe(fpath)
     return fp["streams"]
 
-def get_video_qual_from_filepath (fpath):
+
+def get_video_qual_from_filepath(fpath):
     print(f'{c.purple}Probing {fpath}{c.o}')
     fp = None
     vstreams = []
@@ -72,7 +73,9 @@ def get_video_qual_from_filepath (fpath):
     except ffmpeg.Error as e:
         print(f'{c.red}{e.stderr}{c.o}')
         return 'Probe_error'
-def get_video_streams_from_filepath (fpath):
+
+
+def get_video_streams_from_filepath(fpath):
     print(f'{c.purple}Probing {fpath}{c.o}')
     fp = None
     vstreams = []
@@ -86,7 +89,8 @@ def get_video_streams_from_filepath (fpath):
         print(f'{c.red}{e.stderr}{c.o}')
         return 'Probe_error'
 
-def get_audio_streams_from_filepath (fpath):
+
+def get_audio_streams_from_filepath(fpath):
     print(f'{c.purple}Probing {fpath}{c.o}')
     fp = None
     astreams = []
@@ -100,7 +104,8 @@ def get_audio_streams_from_filepath (fpath):
         print(f'{c.red}{e.stderr}{c.o}')
         return 'Probe_error'
 
-def get_subtitle_streams_from_filepath (fpath):
+
+def get_subtitle_streams_from_filepath(fpath):
     print(f'{c.purple}Probing {fpath}{c.o}')
     fp = None
     sstreams = []
@@ -114,7 +119,8 @@ def get_subtitle_streams_from_filepath (fpath):
         print(f'{c.red}{e.stderr}{c.o}')
         return 'Probe_error'
 
-def get_attachment_streams_from_filepath (fpath):
+
+def get_attachment_streams_from_filepath(fpath):
     print(f'{c.purple}Probing {fpath}{c.o}')
     fp = None
     astreams = []
