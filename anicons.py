@@ -60,7 +60,7 @@ def get_lock(path):
         lock_file.close()
         # wrap the file data in an eval()
         # to make it pythonable
-        lock_file_data = eval(lock_file_data) # pylint: disable =eval-used
+        lock_file_data = eval(lock_file_data)  # pylint: disable =eval-used
         # Return data
         return lock_file_data
 
@@ -128,7 +128,8 @@ def _generate_folder_data(path):
         # Get data
         lock_file['folder_name'] = path.name
         lock_file['folder_size_MB'] = round((get_size(path)/1024)/1024, 2)
-        lock_file['folder_size_GB'] = round(((get_size(path)/1024)/1024)/1024, 2)
+        lock_file['folder_size_GB'] = round(
+            ((get_size(path)/1024)/1024)/1024, 2)
         # Count up the files and their types
         # Bundle it up into a dict and add it to the lock data
         file_enumeration = count_filetypes(path)
@@ -160,7 +161,8 @@ def _generate_predictions(path):
     if not lock_file['has_file_data']:
         # Get data
         try:
-            lock_file['predictions'] = get_predictions_for_folder_name(path.name)
+            lock_file['predictions'] = get_predictions_for_folder_name(
+                path.name)
             print(f"{c.bold}{c.red}{lock_file['predictions']}{c.o}")
             # avoid refresh
             lock_file["has_prediction"] = True
@@ -320,7 +322,7 @@ def _splice_local_and_api(path):
                         episodes[prediction[0]] = prediction_data
                         print(
                             f'\n{c.yellow}{prediction}{c.orange}{prediction_data}{c.o}\n')
-                    except Exception: # pylint: disable=broad-except
+                    except Exception:  # pylint: disable=broad-except
                         pass
                 else:
                     print(
@@ -355,7 +357,7 @@ def rename_folder(path):
     else:
         choice = input(
             f'Rename \n{c.yellow}{folder_name}{c.o} to \n{c.green}{title}{c.o}\n? (y/n)')
-        if choice in ("y","Y"):
+        if choice in ("y", "Y"):
             print('Renaming ...')
             os.rename(abs_path, napath)
             lock_file['folder_name'] = napath.name
@@ -386,7 +388,7 @@ def rename_episodes(path):
                 f"{c.blue}Rename Episode ? : \n"
                 f"{c.yellow}{original_name} -> {c.green}EP {item} - {recomended_name} {ext}\n"
                 f" [y/n]{c.o}")
-            if choice in ("y","Y"):
+            if choice in ("y", "Y"):
 
                 print('Renaming ... ')
                 os.rename(on_path, rn_path)
@@ -416,7 +418,6 @@ def iconify(path):
 
 def main():
     """Main Execution"""
-    # FIXME: Too many branches & statements
     for node in Path(main_path).rglob('*'):
         print(f'{c.b_black} Going through : {main_path}{c.o}')
         print(f'{c.b_black} Currently on  : {node}{c.o}')
@@ -425,54 +426,34 @@ def main():
                 # We have a folder with a lock file
                 print(f'{c.green} Found a lockfile {c.o}')
                 data = None
-                with open(Path.joinpath(node, 'Ξ.lock'),
-                              'r', encoding='utf-8') as l_file :
-
+                with open(
+                    Path.joinpath(node, 'Ξ.lock'),
+                    'r',
+                        encoding='utf-8') as l_file:
                     data = l_file.read()
                     l_file.close()
-                    data = eval(data) # pylint: disable=eval-used
+                    data = eval(data)  # pylint: disable=eval-used
 
                 if not data['has_folder_data']:
                     _generate_folder_data(node)
-                else:
-                    print(
-                        f'{c.green}[Lock file] folder data already fetched. {c.o}\n')
-
                 # must have folder data to be predictable
                 if not data['has_prediction']:
                     _generate_predictions(node)
-                else:
-                    print(
-                        f'{c.green}[Lock file] predictions already fetched. {c.o}\n')
-
                 # must have predictions to be verifiable
                 if not data['is_verified']:
                     _prompt_verification(node)
-                else:
-                    print(f'{c.green}[Lock file]  already Verified . {c.o}\n')
 
                 if not data['has_episode_data']:
                     _generate_episode_data(node)
-                else:
-                    print(
-                        f'{c.green}[Lock file] episode data already fetched. {c.o}\n')
 
                 if not data['has_anime_data']:
                     _generate_anime_data(node)
-                else:
-                    print(
-                        f'{c.green}[Lock file] anime data already fetched. {c.o}\n')
 
                 if not data['has_file_data']:
                     _generate_file_data(node)
-                else:
-                    print(
-                        f'{c.green}[Lock file]  file data already fetched. {c.o}\n')
 
                 if not data['is_spliced']:
                     _splice_local_and_api(node)
-                else:
-                    print(f'{c.green}[Lock file]  already spliced. {c.o}\n')
 
                 rename_episodes(node)
                 iconify(node)
