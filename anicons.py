@@ -1,6 +1,6 @@
 """
-Anicons.py 
-    Makes your folders more pleasing to look at 
+Anicons.py
+    Makes your folders more pleasing to look at
 """
 import time
 import logging
@@ -320,7 +320,7 @@ def _splice_local_and_api(path):
                         episodes[prediction[0]] = prediction_data
                         print(
                             f'\n{c.yellow}{prediction}{c.orange}{prediction_data}{c.o}\n')
-                    except Exception:
+                    except Exception: # pylint: ignore=broad-except
                         pass
                 else:
                     print(
