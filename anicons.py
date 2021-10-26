@@ -1,3 +1,7 @@
+"""
+Anicons.py 
+    Makes your folders more pleasing to look at 
+"""
 import time
 import logging
 import os
@@ -41,7 +45,6 @@ def get_size(start_path='.'):
     for dirpath, dirnames, filenames in os.walk(start_path):
         logging.debug(dirnames)
         for filename in filenames:
-            logging
             file_path = os.path.join(dirpath, filename)
             # skip if it is symbolic link
             if not os.path.islink(file_path):
@@ -143,7 +146,7 @@ def _generate_folder_data(path):
 
 def _generate_predictions(path):
     ''' Generates predictions from the folder name if has_episode_data is false
-    fetches 5 predictions from the jikan.moe api and 
+    fetches 5 predictions from the jikan.moe api and
     lets the user choose the correct one
         ATTRIBUTES:
         is_verified : boolean
@@ -163,8 +166,8 @@ def _generate_predictions(path):
             lock_file["has_prediction"] = True
             # cement changes
             generate_lock_file(path, lock_file)
-        except ConnectionResetError as e:
-            print(e)
+        except ConnectionResetError as error:
+            print(error)
 
 
 def _prompt_verification(path):
@@ -278,7 +281,7 @@ def _generate_file_data(path):
 
 
 def _splice_local_and_api(path):
-    '''Splices local and anime data , needs 
+    '''Splices local and anime data , needs
     has anime data and has file data to be set
     sets spliced_data'''
     print(f'{c.b_black}{c.bold} _splice_local_and_api {path}{c.o}')
@@ -295,10 +298,10 @@ def _splice_local_and_api(path):
         def check_delta(lock_file):
             data = lock_file['file_data']
 
-            for ep in data:
+            for episode in data:
                 prediction_data = []
                 # if prediction failed pass the ep
-                if ep['predicted_ep_num'] == []:
+                if episode['predicted_ep_num'] == []:
                     print(
                         f'{c.red}Predicting episode names has failed {c.o}\n{c.yellow} \n'
                         'try renaming with episode numbers with spaces around \n'
@@ -307,24 +310,22 @@ def _splice_local_and_api(path):
                         f' that is : 2020 , 720 1080 , it confuses the app. {c.o}')
 
                 else:
-                    prediction = ep['predicted_ep_num']
+                    prediction = episode['predicted_ep_num']
                 # if api episodes non null
                 if lock_file['episode_names'] != {}:
                     try:
                         prediction_data = lock_file['episode_names'][int(
                             prediction[0])]
-                        prediction_data['original'] = ep
+                        prediction_data['original'] = episode
                         episodes[prediction[0]] = prediction_data
                         print(
                             f'\n{c.yellow}{prediction}{c.orange}{prediction_data}{c.o}\n')
-                    except BaseException:
+                    except Exception:
                         pass
                 else:
                     print(
                         f'{c.red}Could not find Episode data from the internet {c.o}\n')
-                # print(f'\n{c.red}{delta}{c.o}\n')
         check_delta(lock_file)
-
         lock_file['spliced_data'] = episodes
         lock_file['is_spliced'] = True
         generate_lock_file(path, lock_file)
