@@ -1,4 +1,4 @@
-
+# pylint: disable:F0001
 class c:
     black = '\033[30m'
     red = '\033[31m'

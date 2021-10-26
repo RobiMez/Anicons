@@ -1,3 +1,4 @@
 jikanpy 
 PIL
 asyncio
+Pillow

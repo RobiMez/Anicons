@@ -1,3 +1,4 @@
+# pylint: disable:F0001
 import json
 import time
 import requests

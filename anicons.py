@@ -36,14 +36,14 @@ def get_size(start_path='.'):
 def get_lock(path):
     ''' Reads a lockfile and returns data '''
     print(f'{c.bold}{c.black} READ : lockfile {c.o}')
-    lock_file = open(Path.joinpath(path, 'Ξ.lock'), 'r', encoding='utf-8')
-    lock_file_data = lock_file.read()
-    lock_file.close()
-    # wrap the file data in an eval()
-    # to make it pythonable
-    lock_file_data = eval(lock_file_data)
-    # Return data
-    return lock_file_data
+    with open(Path.joinpath(path, 'Ξ.lock'), 'r', encoding='utf-8') as lock_file :
+        lock_file_data = lock_file.read()
+        lock_file.close()
+        # wrap the file data in an eval()
+        # to make it pythonable
+        lock_file_data = eval(lock_file_data)
+        # Return data
+        return lock_file_data
 
 
 def sanitize(dirty=''):
@@ -104,7 +104,7 @@ def _generate_folder_data(path):
         folder_contents : enumeration of files within the folder
     '''
     lfd = get_lock(path)
-    if lfd['has_folder_data'] == False:
+    if not lfd['has_folder_data']:
         # Get data
         lfd['folder_name'] = path.name
         lfd['folder_size_MB'] = round((get_size(path)/1024)/1024, 2)
@@ -137,7 +137,7 @@ def _generate_predictions(path):
 
     lfd = get_lock(path)
 
-    if lfd['has_file_data'] == False:
+    if not lfd['has_file_data']:
         # Get data
         try:
             lfd['predictions'] = get_predictions_for_folder_name(path.name)
@@ -195,7 +195,7 @@ def _prompt_verification(path):
             lfd.pop('predictions')
             generate_lock_file(path, lfd)
     else:
-        print(f'Please choose from [ 0 - 5 ]')
+        print('Please choose from [ 0 - 5 ]')
 
 
 def _generate_anime_data(path):
@@ -277,7 +277,7 @@ def _splice_local_and_api(path):
 
         def check_delta(lfd):
             data = lfd['file_data']
-            delta = []
+
             for ep in data:
                 prediction_data = []
                 # if prediction failed pass the ep
@@ -295,7 +295,7 @@ def _splice_local_and_api(path):
                         episodes[prediction[0]] = prediction_data
                         print(
                             f'\n{c.yellow}{prediction}{c.orange}{prediction_data}{c.o}\n')
-                    except:
+                    except BaseException as e :
                         pass
                 else:
                     print(
@@ -334,7 +334,7 @@ def rename_folder(path):
         choice = input(
             f'Rename \n{c.yellow}{fn}{c.o} to \n{c.green}{t}{c.o}\n? (y/n)')
         if choice == 'y' or choice == 'Y':
-            print(f'Renaming ...')
+            print('Renaming ...')
             os.rename(apath, napath)
             lfd['folder_name'] = napath.name
         else:
@@ -363,7 +363,7 @@ def rename_episodes(path):
                 f"{c.blue}Rename Episode ? : {c.yellow}{original_name} -> {c.green}EP {item} - {recomended_name} {ext}{c.o} [y/n]")
             if choice == 'y' or choice == 'Y':
 
-                print(f'Renaming ... ')
+                print('Renaming ... ')
                 os.rename(on_path, rn_path)
 
                 lfd['episodes_renamed'] = True
@@ -377,7 +377,7 @@ def rename_episodes(path):
 def iconify(path):
     lfd = get_lock(path)
     cover = lfd['anime_data']['image_url']
-    if lfd['has_icon'] == False:
+    if not lfd['has_icon']:
 
         download_poster(cover, path)
         create_ico(path, path)
@@ -405,44 +405,44 @@ def main():
                 l_file.close()
                 data = eval(data)
 
-                if data['has_folder_data'] == False:
+                if not data['has_folder_data']:
                     _generate_folder_data(node)
                 else:
                     print(
                         f'{c.green}[Lock file] folder data already fetched. {c.o}\n')
 
                 # must have folder data to be predictable
-                if data['has_prediction'] == False:
+                if not data['has_prediction'] :
                     _generate_predictions(node)
                 else:
                     print(
                         f'{c.green}[Lock file] predictions already fetched. {c.o}\n')
 
                 # must have predictions to be verifiable
-                if data['is_verified'] == False:
+                if not data['is_verified']:
                     _prompt_verification(node)
                 else:
                     print(f'{c.green}[Lock file]  already Verified . {c.o}\n')
 
-                if data['has_episode_data'] == False:
+                if not data['has_episode_data'] :
                     _generate_episode_data(node)
                 else:
                     print(
                         f'{c.green}[Lock file] episode data already fetched. {c.o}\n')
 
-                if data['has_anime_data'] == False:
+                if not data['has_anime_data'] :
                     _generate_anime_data(node)
                 else:
                     print(
                         f'{c.green}[Lock file] anime data already fetched. {c.o}\n')
 
-                if data['has_file_data'] == False:
+                if not data['has_file_data']:
                     _generate_file_data(node)
                 else:
                     print(
                         f'{c.green}[Lock file]  file data already fetched. {c.o}\n')
 
-                if data['is_spliced'] == False:
+                if not data['is_spliced']:
                     _splice_local_and_api(node)
                 else:
                     print(f'{c.green}[Lock file]  already spliced. {c.o}\n')
@@ -471,93 +471,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-
-# def splice_ep_namepredicions_with_data(path):
-#     lock_file = open(Path.joinpath(path,'ani.lock'), 'r',encoding='utf-8')
-#     lock_file_data = lock_file.read()
-#     lock_file.close()
-#     # wrap the file data in an eval()
-#     #  to make it pythonable
-#     lock_file_data = eval(lock_file_data)
-#     # logic after lock data is available
-
-#     generate_lock_file(path,new_data)
-
-#     pass
-
-
-# class anicons:
-#     def __init__ (self) :
-#         os.system('cls')
-#         print('-------------------------------------#')
-#         self.cwd = Path.cwd()
-#         self.home = Path.home()
-#         print('CWD:',self.cwd)
-#         print('HOME:',self.home)
-
-#     def gen_struct(self):
-#         for p in Path(self.cwd).rglob('*'):
-#             if p.is_dir() :
-#                 print(f"[D] {p}")
-#                 # time.sleep(0.1)
-#             elif p.is_file():
-#                 # print(f"[F]{p.suffix}]\t{p.parent}\{p.name}")
-#                 # print(f"[F][{p}")
-#                 # time.sleep(0.1)
-#                 if p.suffix == '.mkv' or p.suffix == '.mp4':
-#                     try:
-#                         probe_data = get_probe(str(p))
-#                         # save_probe(str(p))
-#                         # pprint(probe_data['streams'])
-#                         os.system('cls')
-#                     #
-#                         print(f'\n{c.green}-------  File Data  ----------------------------{c.o}')
-#                     #
-#                         print(f"{c.b_black}Name : {c.o}",p.name)
-#                         print(f'{c.purple}Duration :{c.o}',round(float(probe_data['format']['duration'])/60,2),'Minute(s)')
-#                         print(f"{c.purple}Filesize :{c.o}",round(float(probe_data['format']['size'])/1024/1024,2),"Mb")
-#                         print(f"{c.purple}Creation time :{c.o}",probe_data['format']['tags']['creation_time'].split('T')[0])
-
-#                     #
-#                         print(f'\n{c.green}-------  Streams ( {probe_data["format"]["nb_streams"]} ) --------------{c.o}')
-#                     #
-
-#                         for stream in probe_data['streams']:
-
-#                             codec_type = stream['codec_type'].capitalize()
-#                             # codec_name = stream['codec_name']
-#                             codec_long_name = stream['codec_long_name']
-#                             print(f'{c.b_purple}{codec_type} | {c.blue}{codec_long_name}{c.o}')
-#                             #
-#                             if codec_type == 'Video':
-#                                 print(f"{c.green} Quality :{c.o}",stream['height'],'P')
-#                                 print(f"{c.b_black} Aspect Ratio :{c.o}",stream['display_aspect_ratio'])
-#                                 print(f"{c.b_black} Dimensions :{c.o}",stream['width'],'x',stream['height'])
-#                             if codec_type == 'Audio':
-
-#                                 print(f"{c.green} Language :{c.o}",stream['tags']['language'].capitalize())
-#                                 print(f"{c.b_black} Channels :{c.o}",stream['channels'])
-#                                 print(f"{c.b_black} Layout :{c.o}",stream['channel_layout'])
-
-#                             if codec_type == 'Subtitle':
-
-#                                 print(f"{c.green} Language :{c.o}",stream['tags']['language'].capitalize(),stream['tags']['title'])
-#                                 print(f"{c.b_black} Size :{c.o}",round(float(stream['tags']['NUMBER_OF_BYTES'])/1024),'Kbs')
-
-
-#                     except KeyError as e :
-#                         print(f"{c.red} {e} {c.o}")
-#                         if e != 'title':
-#                             pass
-#                         elif e != 'NUMBER_OF_BYTES':
-#                             pass
-#                         else :
-#                             print(f"{c.b_black} {stream} {c.o}")
-#                             time.sleep(20)
-#                     time.sleep(0.03)
-
-# ani = anicons()
-# for node in get_structure('./'):
-#     print(f'{c.green}{check_if_path_is_dir(node)}{c.o}')
-#     print(f'{c.blue}{check_if_path_is_file(node)}{c.o}')
-#     print(f'{c.b_black}{node}{c.o}')

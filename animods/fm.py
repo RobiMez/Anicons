@@ -1,3 +1,4 @@
+# pylint: disable:F0001
 import ffmpeg
 import json
 from animods.misc import c

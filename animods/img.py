@@ -1,3 +1,5 @@
+
+# pylint: disable:F0001
 from PIL import Image
 import os
 import tempfile

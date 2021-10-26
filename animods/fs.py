@@ -1,3 +1,4 @@
+# pylint: disable:F0001
 import os
 from pathlib import Path
 from animods.misc import c
