@@ -1,8 +1,11 @@
 # pylint: disable:F0001
+import jikanpy.exceptions
+
 from animods.misc import c
 import json
 import requests
 from jikanpy import Jikan
+
 ji = Jikan()
 
 
@@ -27,11 +30,7 @@ def get_episode_names_for_anime(mal_id):
     ep_names = {}
     for ep in episodes:
         ep_num = ep['episode_id']
-        ep_data = {}
-        ep_data['title'] = ep['title']
-        ep_data['title_rom'] = ep['title_romanji']
-        ep_data['filler'] = ep['filler']
-        ep_data['recap'] = ep['recap']
+        ep_data = {'title': ep['title'], 'title_rom': ep['title_romanji'], 'filler': ep['filler'], 'recap': ep['recap']}
 
         ep_names[ep_num] = ep_data
         # ep_names.append(ep['title'])
@@ -54,24 +53,13 @@ def get_data_for_id(mal_id):
         # pprint(response_body)
 
         result = json.loads(response_body)
-        data = {}
+        data = {'title': result['title'], 'mal_id': result['mal_id'], 'episodes': result['episodes'],
+                'status': result['status'], 'airing': result['airing'], 'title_english': result['title_english'],
+                'title_japanese': result['title_japanese'], 'aired': result['aired']['string'],
+                'rating': result['rating'], 'premiered': result['premiered'], 'favorites': result['favorites'],
+                'score': result['score'], 'scored_by': result['scored_by'], 'type': result['type'],
+                'image_url': result['image_url']}
         # pprint(result)
-
-        data['title'] = result['title']
-        data['mal_id'] = result['mal_id']
-        data['episodes'] = result['episodes']
-        data['status'] = result['status']
-        data['airing'] = result['airing']
-        data['title_english'] = result['title_english']
-        data['title_japanese'] = result['title_japanese']
-        data['aired'] = result['aired']['string']
-        data['rating'] = result['rating']
-        data['premiered'] = result['premiered']
-        data['favorites'] = result['favorites']
-        data['score'] = result['score']
-        data['scored_by'] = result['scored_by']
-        data['type'] = result['type']
-        data['image_url'] = result['image_url']
 
         genre_list = []
         for genre in result['genres']:
@@ -99,7 +87,11 @@ def get_data_for_id(mal_id):
 
 def get_predictions_for_folder_name(folder_name):
     # Todo: handle 404 pages
-    resp = ji.search('anime', folder_name, parameters={'limit': 5})
+    resp = None
+    try:
+        resp = ji.search('anime', folder_name, parameters={'limit': 5})
+    except jikanpy.exceptions.APIException as e:
+        print(f'Error {e}')
     results_list = []
     for result in resp['results']:
         results_list.append(

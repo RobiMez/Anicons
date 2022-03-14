@@ -2,6 +2,8 @@
 
 An anime folder management tool.
 
+## BROKEN TILL JIKANPY UPDATES TO API V4  
+
 ## Requirements
 
     Python 3.7.7

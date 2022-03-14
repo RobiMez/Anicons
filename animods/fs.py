@@ -22,13 +22,13 @@ def count_filetypes(p):
 
 
 def alter_attributes(path, attribute):
-    '''
+    """
     Usage :
     alter_attributes('sth.md','+R +S') # sets to read only and system
-    Settings : 
+    Settings :
         +   Sets an attribute.
         -   Clears an attribute.
-    Attributes : 
+    Attributes :
         R   Read-only file attribute.
         A   Archive file attribute.
         S   System file attribute.
@@ -40,9 +40,9 @@ def alter_attributes(path, attribute):
         P   Pinned attribute.
         U   Unpinned attribute.
         B   SMR Blob attribute.
-    path : 
-        path to your file 
-    '''
+    path :
+        path to your file
+    """
     # https://stackoverflow.com/a/64732313/14182895
     # thanks to this kind stranger
     os.system(f'attrib """{path}""" {attribute}')
@@ -69,4 +69,4 @@ def generate_lock_file(path, data):
         print(f'{c.orange}{path}{c.yellow} is not a folder.{c.o}')
 
 
-__all__ = ['alter_attributes', 'generate_lock_file','count_filetypes']
+__all__ = ['alter_attributes', 'generate_lock_file', 'count_filetypes']

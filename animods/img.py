@@ -12,7 +12,7 @@ from animods.misc import c, print_progress_bar
 
 def download_poster(image_url, out_dir):
     print("  [ Api ] Downloading cover art :")
-    buffer = SpooledTemporaryFile(max_size=1e9)
+    buffer = SpooledTemporaryFile(max_size=1000000000)
     r = get(image_url, stream=True)
     if r.status_code == 200:
         downloaded = 0
@@ -33,8 +33,8 @@ def download_poster(image_url, out_dir):
     buffer.close()
 
 
-def create_ico(path, source):
-    """Creates a an.ico file in the specified path using image.jpg 
+def create_ico(path):
+    """Creates an an.ico file in the specified path using image.jpg
 
     @Params : 
         path : where the jpeg rests 
@@ -90,7 +90,7 @@ def create_config(path):
         f.write(f'[.ShellClassInfo]\nIconResource=an.ico,0\nConfirmFileOp=0')
         f.close()
         os.rename(path+r'\desktop.in', path+r'\desktop.ini')
-    except(FileExistsError):
+    except FileExistsError:
         print('[ >_< ] file already exists ... Remaking')
         os.remove(path+r'\desktop.in')
         os.remove(path+r'\desktop.ini')
@@ -99,6 +99,3 @@ def create_config(path):
         f.close()
         os.rename(path+r'\desktop.in', path+r'\desktop.ini')
         print('[ ^_^ ] Remade icon config ')
-
-
-all = ["download_poster","create_ico","create_config"]

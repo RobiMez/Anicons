@@ -24,12 +24,14 @@ class c:
     o = '\033[0m'
 
 
-def print_progress_bar(iteration, total, prefix='Progress:', suffix='Complete ', decimals=1, length=25, fill='█', unfill='–', printEnd="\r"):
+def print_progress_bar(iteration, total, prefix='Progress:', suffix='Complete ', decimals=1, length=25, fill='█',
+                       no_fill='–', printEnd="\r"):
     percent = ("{0:." + str(decimals) + "f}").format(100 *
                                                      (iteration / float(total)))
     filledLength = int(length * iteration // total)
-    bar = fill * filledLength + unfill * (length - filledLength)
+    bar = fill * filledLength + no_fill * (length - filledLength)
     # Progress bar printing
     print(f'\r{prefix} │{bar}│ {percent}% {suffix}', end=printEnd)
 
-__all__ = ["c","print_progress_bar"]
+
+__all__ = ["c", "print_progress_bar"]

@@ -42,10 +42,10 @@ def merge(dict1, dict2):
 def get_size(start_path='.'):
     """Gets size of a path """
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(start_path):
-        logging.debug(dirnames)
+    for dir_path, dir_names, filenames in os.walk(start_path):
+        logging.debug(dir_names)
         for filename in filenames:
-            file_path = os.path.join(dirpath, filename)
+            file_path = os.path.join(dir_path, filename)
             # skip if it is symbolic link
             if not os.path.islink(file_path):
                 total_size += os.path.getsize(file_path)
@@ -53,20 +53,20 @@ def get_size(start_path='.'):
 
 
 def get_lock(path):
-    ''' Reads a lockfile and returns data '''
+    """ Reads a lockfile and returns data """
     print(f'{c.bold}{c.black} READ : lockfile {c.o}')
     with open(Path.joinpath(path, 'Ξ.lock'), 'r', encoding='utf-8') as lock_file:
         lock_file_data = lock_file.read()
         lock_file.close()
         # wrap the file data in an eval()
-        # to make it pythonable
+        # to make it python able
         lock_file_data = eval(lock_file_data)  # pylint: disable =eval-used
         # Return data
         return lock_file_data
 
 
 def sanitize(dirty=''):
-    """Sanitizes filenames to avoid windows error"""
+    """Sanitizes filenames to avoid Windows error"""
     # / \ : * ? > < |
     dirty = dirty.replace('/', '')
     dirty = dirty.replace('\\', '')
@@ -83,19 +83,19 @@ def sanitize(dirty=''):
 # lockfile dependant methods ---------------------------
 
 def _initialize_lockfile(path):
-    ''' initializes a lockfile and sets constructor attributes :
+    """ initializes a lockfile and sets constructor attributes :
         ATTRIBUTES :
             is_skipped : for skipped folders
             is_verified : for verified folders
             is_spliced : for splicing
-            folder_rename_skip : for those who dont want to rename
-            episode_rename_skip : for those who dont want to rename
-            has_episode_data : if episode data is present and non null
+            folder_rename_skip : for those who don't want to rename
+            episode_rename_skip : for those who don't want to rename
+            has_episode_data : if episode data is present and non-null
             has_folder_data : if folder data generated
             has_anime_data : if folder data generated
             has_file_data : if file data generated for episodes
             has_prediction : boolean
-    '''
+    """
     print(f'{c.b_black}{c.bold} _initialize_lockfile {path}{c.o}')
     generate_lock_file(path, {})
     lock_file = get_lock(path)
@@ -115,13 +115,13 @@ def _initialize_lockfile(path):
 
 
 def _generate_folder_data(path):
-    ''' Generates the following data if has_folder_data is false
+    """ Generates the following data if the variable has_folder_data is false
         ATTRIBUTES :
         folder_name : current folder name
         folder_size_MB : folder size in megabytes
         folder_size_GB : folder size in gigabytes
         folder_contents : enumeration of files within the folder
-    '''
+    """
     print(f'{c.b_black}{c.bold} _generate_folder_data {path}{c.o}')
     lock_file = get_lock(path)
     if not lock_file['has_folder_data']:
@@ -137,7 +137,7 @@ def _generate_folder_data(path):
         for filetype in file_enumeration:
             folder_contents[filetype] = file_enumeration[filetype]
         lock_file['folder_contents'] = folder_contents
-        # Set the has file data to true to avoid refetch
+        # Set the has file data to true to avoid re-fetch
         lock_file['has_folder_data'] = True
         # cement changes
         generate_lock_file(path, lock_file)
@@ -146,14 +146,14 @@ def _generate_folder_data(path):
 
 
 def _generate_predictions(path):
-    ''' Generates predictions from the folder name if has_episode_data is false
+    """ Generates predictions from the folder name provided has_episode_data is false
     fetches 5 predictions from the jikan.moe api and
     lets the user choose the correct one
         ATTRIBUTES:
         is_verified : boolean
         predictions : list containing data
     leads to episode data generation
-    '''
+    """
     print(f'{c.b_black}{c.bold} _generate_predictions {path}{c.o}')
 
     lock_file = get_lock(path)
@@ -173,10 +173,10 @@ def _generate_predictions(path):
 
 
 def _prompt_verification(path):
-    '''Prompts user to verify the prediction
+    """Prompts user to verify the prediction
     Uses is_verified from the initialization to
     prompt the user for verification
-    '''
+    """
     print(f'{c.b_black}{c.bold} _prompt_verification {path}{c.o}')
     # Load data
     lock_file = get_lock(path)
@@ -197,20 +197,20 @@ def _prompt_verification(path):
     print(f'{c.b_black} ───────────────────────────────────────────────────── {c.o}\n')
     choice = input('Choice [ 0 - 5 ]:')
     # Do post-validation
-    if choice.isnumeric():  # it the choice is numeric
-        if int(choice) <= 5 and int(choice) >= 0:  # its between 0 and 5 incl.
-            # set verified as true to avoid re verification
+    if choice.isnumeric():  # if the choice is numeric
+        if 5 >= int(choice) >= 0:  # and its between 0 and 5 incl.
+            # set verified as true to avoid re-verification
             lock_file['is_verified'] = True
             correct_prediction = None
-            # Get the correct predicion
+            # Get the correct prediction
             # Unless skipped
             if int(choice) == 0:
                 lock_file['is_skipped'] = True
             else:
                 correct_prediction = predictions[int(choice)-1]
-            # Get the correct predicion data
+            # Get the correct prediction data
             lock_file['correct_prediction'] = correct_prediction
-            # remove the predicions as now we are sure
+            # remove the predictions as now we are sure
             lock_file.pop('predictions')
             generate_lock_file(path, lock_file)
     else:
@@ -251,21 +251,21 @@ def _generate_episode_data(path):
 
 
 def _generate_file_data(path):
-    '''Sets media_data and predicted ep num and current filename'''
+    """Sets media_data and predicted ep num and current filename"""
     print(f'{c.b_black}{c.bold} _generate_file_data {path}{c.o}')
     lock_file = get_lock(path)
     folder_contents = lock_file['folder_contents']
     supported_media_types = ['.mp4', '.mkv', '.flv', '.webm']
+    file_data = None
 
     for item in folder_contents:
         if item in supported_media_types:
             i = 0
             file_data_container = []
-            # globbs for each filetype
-            for fileglob in path.rglob(f"*{item}"):
-                file_data = {}
-                file_data['current_filename'] = fileglob.name
-                pep_num = re.findall(r'\b\d+\b', fileglob.name)
+            # globs for each filetype
+            for file_glob in path.rglob(f"*{item}"):
+                file_data = {'current_filename': file_glob.name}
+                pep_num = re.findall(r'\b\d+\b', file_glob.name)
                 file_data['predicted_ep_num'] = pep_num
                 # media = get_file_data(str(Path.joinpath(Path.cwd(),item)))
                 # for item in media:
@@ -283,9 +283,9 @@ def _generate_file_data(path):
 
 
 def _splice_local_and_api(path):
-    '''Splices local and anime data , needs
+    """Splices local and anime data , needs
     has anime data and has file data to be set
-    sets spliced_data'''
+    sets spliced_data"""
     print(f'{c.b_black}{c.bold} _splice_local_and_api {path}{c.o}')
     lock_file = get_lock(path)
     if lock_file['has_file_data'] and lock_file['has_episode_data']:
@@ -297,13 +297,13 @@ def _splice_local_and_api(path):
         print(f'{c.blue}{api_episodes}{c.o}')
         print(f'{c.yellow}{local_episodes}{c.o}')
 
-        def check_delta(lock_file):
-            data = lock_file['file_data']
+        def check_delta(lock_file_):
+            prediction = None
+            data = lock_file_['file_data']
 
             for episode in data:
-                prediction_data = []
                 # if prediction failed pass the ep
-                if episode['predicted_ep_num'] == []:
+                if not episode['predicted_ep_num']:
                     print(
                         f'{c.red}Predicting episode names has failed {c.o}\n{c.yellow} \n'
                         'try renaming with episode numbers with spaces around \n'
@@ -314,15 +314,15 @@ def _splice_local_and_api(path):
                 else:
                     prediction = episode['predicted_ep_num']
                 # if api episodes non null
-                if lock_file['episode_names'] != {}:
+                if lock_file_['episode_names'] != {}:
                     try:
-                        prediction_data = lock_file['episode_names'][int(
+                        prediction_data = lock_file_['episode_names'][int(
                             prediction[0])]
                         prediction_data['original'] = episode
                         episodes[prediction[0]] = prediction_data
                         print(
                             f'\n{c.yellow}{prediction}{c.orange}{prediction_data}{c.o}\n')
-                    except Exception:  # pylint: disable=broad-except
+                    except KeyError:  # pylint: disable=broad-except
                         pass
                 else:
                     print(
@@ -349,8 +349,8 @@ def rename_folder(path):
     title = sanitize(title)
     abs_path = Path.absolute(path)
     print(abs_path.parent)
-    napath = Path.joinpath(abs_path.parent, title)
-    print(napath)
+    new_abs_path = Path.joinpath(abs_path.parent, title)
+    print(new_abs_path)
     # ask if they want to rename the folder
     if folder_name == title or lock_file['folder_rename_skip']:
         pass
@@ -359,11 +359,11 @@ def rename_folder(path):
             f'Rename \n{c.yellow}{folder_name}{c.o} to \n{c.green}{title}{c.o}\n? (y/n)')
         if choice in ("y", "Y"):
             print('Renaming ...')
-            os.rename(abs_path, napath)
-            lock_file['folder_name'] = napath.name
+            os.rename(abs_path, new_abs_path)
+            lock_file['folder_name'] = new_abs_path.name
         else:
             lock_file['folder_rename_skip'] = True
-    generate_lock_file(napath, lock_file)
+    generate_lock_file(new_abs_path, lock_file)
 
 
 def rename_episodes(path):
@@ -372,11 +372,11 @@ def rename_episodes(path):
 
     for item in lock_file['spliced_data']:
         original_name = lock_file['spliced_data'][item]['original']['current_filename']
-        recomended_name = lock_file['spliced_data'][item]['title']
+        recommended_name = lock_file['spliced_data'][item]['title']
 
         on_path = Path.joinpath(path, original_name)
         ext = on_path.suffix
-        new_filename = f'EP {item} - {recomended_name}{ext}'
+        new_filename = f'EP {item} - {recommended_name}{ext}'
         new_filename = sanitize(new_filename)
         rn_path = Path.joinpath(path, new_filename)
 
@@ -386,7 +386,7 @@ def rename_episodes(path):
         if not rn_path.exists() and not lock_file['episode_rename_skip']:
             choice = input(
                 f"{c.blue}Rename Episode ? : \n"
-                f"{c.yellow}{original_name} -> {c.green}EP {item} - {recomended_name} {ext}\n"
+                f"{c.yellow}{original_name} -> {c.green}EP {item} - {recommended_name} {ext}\n"
                 f" [y/n]{c.o}")
             if choice in ("y", "Y"):
 
@@ -406,7 +406,7 @@ def iconify(path):
     if not lock_file['has_icon']:
 
         download_poster(cover, path)
-        create_ico(path, path)
+        create_ico(path)
         create_config(path)
         alter_attributes(Path.joinpath(path, 'desktop.ini'), '+H')
         alter_attributes(Path.joinpath(path, 'image.jpg'), '+H')
@@ -425,7 +425,6 @@ def main():
             if Path.joinpath(node, 'Ξ.lock').exists():
                 # We have a folder with a lock file
                 print(f'{c.green} Found a lockfile {c.o}')
-                data = None
                 with open(
                     Path.joinpath(node, 'Ξ.lock'),
                     'r',
